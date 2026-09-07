@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import { join } from "node:path";
 import { forwardAgentEventsToWindow } from "./agent-event-forwarding";
+import { createFilePreviewService } from "./file-preview-service";
 import { registerIpcHandlers } from "./ipc-handlers";
 import { createPiSdkRuntimeService } from "./pi-sdk-runtime-service";
 import { createWorkspaceSessionService } from "./workspace-session-service";
@@ -10,6 +11,7 @@ const workspaceSessionService = createWorkspaceSessionService({
   cwd: process.cwd(),
   sessionManager: piSdkRuntimeService.sessionManager,
 });
+const filePreviewService = createFilePreviewService({ workspaceRoot: process.cwd() });
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -43,7 +45,7 @@ function createWindow() {
 }
 
 void app.whenReady().then(() => {
-  registerIpcHandlers({ ipcMain, workspaceSessionService });
+  registerIpcHandlers({ ipcMain, workspaceSessionService, filePreviewService });
   createWindow();
 
   app.on("activate", () => {

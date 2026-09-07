@@ -28,7 +28,7 @@
 ## Context And Preview
 
 - Context Panel shows token usage, cost, context percentage, compaction state, and summary.
-- Markdown preview has separate Main-side file reading and Renderer-side display components ready for IPC wiring.
+- Markdown preview loads workspace markdown through Main-side file reading and Preload IPC.
 
 ## Verification
 

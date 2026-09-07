@@ -1,19 +1,69 @@
-import { startTransition, useEffect, useReducer } from "react";
+import { startTransition, useEffect, useReducer, useState } from "react";
 import { ContextPanel } from "./components/ContextPanel";
 import { RunTimeline } from "./components/RunTimeline";
 import { WorkspaceSessionsPanel } from "./components/WorkspaceSessionsPanel";
-import { initialContextPanelState } from "./state/context-store";
+import {
+  initialContextPanelState,
+  type ContextPanelState,
+} from "./state/context-store";
 import {
   initialAgentTimelineState,
   reduceAgentEvent,
 } from "./state/agent-event-reducer";
+import {
+  createWorkspaceSessionsState,
+  updateWorkspaceSessions,
+} from "./state/workspace-sessions-store";
 
 export function App() {
   const currentWorkspacePath = "D:/myproject/agentScope";
+  const [workspaceState, setWorkspaceState] = useState(() =>
+    createWorkspaceSessionsState({
+      sessions: [
+        {
+          id: "current",
+          filePath: `${currentWorkspacePath}/sessions/current.jsonl`,
+          workspacePath: currentWorkspacePath,
+          title: "Current Session",
+          summary: "Workspace-scoped Pi SDK session",
+          isCurrent: true,
+        },
+      ],
+    }),
+  );
+  const [contextState, setContextState] = useState<ContextPanelState>(initialContextPanelState);
   const [timelineState, dispatchTimelineEvent] = useReducer(
     reduceAgentEvent,
     initialAgentTimelineState,
   );
+
+  useEffect(() => {
+    const api = window.agentScope;
+
+    if (api) {
+      const currentSession = api.getCurrentSession();
+      if (currentSession) {
+        void currentSession.then((session) => {
+          startTransition(() => {
+            setWorkspaceState((state) => updateWorkspaceSessions(state, [session]));
+          });
+        }).catch((error: unknown) => {
+          console.error("Failed to load current session", error);
+        });
+      }
+
+      const markdownPreview = api.readMarkdownPreview("README.md");
+      if (markdownPreview) {
+        void markdownPreview.then((preview) => {
+          startTransition(() => {
+            setContextState((state) => ({ ...state, markdownPreview: preview }));
+          });
+        }).catch((error: unknown) => {
+          console.error("Failed to load markdown preview", error);
+        });
+      }
+    }
+  }, []);
 
   useEffect(() => {
     return window.agentScope?.onAgentEvent((event) => {
@@ -26,20 +76,14 @@ export function App() {
   return (
     <main className="grid min-h-screen grid-cols-[280px_minmax(0,1fr)_320px] bg-zinc-950 text-zinc-100">
       <WorkspaceSessionsPanel
-        currentWorkspacePath={currentWorkspacePath}
-        sessions={[
-          {
-            id: "current",
-            filePath: `${currentWorkspacePath}/sessions/current.jsonl`,
-            workspacePath: currentWorkspacePath,
-            title: "Current Session",
-            summary: "Workspace-scoped Pi SDK session",
-            isCurrent: true,
-          },
-        ]}
+        currentWorkspacePath={workspaceState.sessions[0]?.workspacePath ?? currentWorkspacePath}
+        sessions={workspaceState.sessions}
       />
       <RunTimeline state={timelineState} />
-      <ContextPanel stats={initialContextPanelState.stats} />
+      <ContextPanel
+        stats={contextState.stats}
+        markdownPreview={contextState.markdownPreview}
+      />
     </main>
   );
 }

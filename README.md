@@ -2,14 +2,13 @@
 
 AgentScope is an Electron + React desktop client for Pi SDK. It turns a CLI-style
 agent run into a three-pane desktop console for session navigation, live run
-inspection, and context visibility. The first slice also includes Main-side and
-Renderer-side building blocks for local markdown preview.
+inspection, context visibility, and local markdown preview.
 
 ## Layout
 
 - Left: Workspace Sessions grouped by workspace folder.
 - Middle: Run Timeline with assistant deltas and tool execution cards.
-- Right: Context Panel for token/cost/context status, with a Markdown Preview component ready for IPC wiring.
+- Right: Context Panel for token/cost/context status, with Markdown Preview loaded through Main-side file IPC.
 
 ## Runtime
 
@@ -25,6 +24,7 @@ through a narrow Preload + IPC API exposed with `contextBridge`.
 - The renderer reducer merges high-frequency `text_delta` events into stable timeline state before React rendering.
 - Repeated tool calls are tracked by SDK `toolCallId`, avoiding duplicate-key and status-collision bugs.
 - Browser windows use `contextIsolation: true`, `nodeIntegration: false`, and `sandbox: true`.
+- Local markdown preview is read in Main Process, constrained to markdown files inside the workspace, and delivered through Preload IPC.
 
 ## Scripts
 

@@ -11,6 +11,7 @@ release/
 # Test and coverage
 coverage/
 .vitest/
+tmp-preview-test/
 
 # Logs
 *.log

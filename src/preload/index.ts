@@ -4,6 +4,7 @@ import { ipcChannels, type AgentScopeApi } from "../shared/ipc-contract";
 
 const api: AgentScopeApi = {
   getCurrentSession: () => ipcRenderer.invoke(ipcChannels.getCurrentSession),
+  readMarkdownPreview: (path) => ipcRenderer.invoke(ipcChannels.readMarkdownPreview, path),
   onAgentEvent: (listener) => {
     const handler = (_event: Electron.IpcRendererEvent, payload: AgentRuntimeEvent) => {
       listener(payload);

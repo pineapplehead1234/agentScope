@@ -1,10 +1,15 @@
 import "@testing-library/jest-dom/vitest";
-import { act, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "../App";
 import type { AgentRuntimeEvent } from "../../shared/agent-events";
 
 describe("App", () => {
+  afterEach(() => {
+    cleanup();
+    window.agentScope = undefined;
+  });
+
   it("renders the three-pane shell", () => {
     render(<App />);
 
@@ -19,6 +24,7 @@ describe("App", () => {
 
     window.agentScope = {
       getCurrentSession: vi.fn(),
+      readMarkdownPreview: vi.fn(),
       onAgentEvent: vi.fn((nextListener) => {
         listener = nextListener;
         return unsubscribe;
@@ -35,5 +41,43 @@ describe("App", () => {
     });
 
     expect(screen.getByText("Hello from Pi")).toBeInTheDocument();
+  });
+
+  it("loads current session from the preload API", async () => {
+    window.agentScope = {
+      getCurrentSession: vi.fn(async () => ({
+        id: "real-session",
+        filePath: "D:/myproject/agentScope/.pi/sessions/real.jsonl",
+        workspacePath: "D:/myproject/agentScope",
+        title: "Real Pi Session",
+        summary: "Loaded from Main IPC",
+        isCurrent: true,
+      })),
+      readMarkdownPreview: vi.fn(),
+      onAgentEvent: vi.fn(() => vi.fn()),
+    };
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Real Pi Session")).toBeInTheDocument();
+    });
+  });
+
+  it("loads markdown preview through the preload API", async () => {
+    window.agentScope = {
+      getCurrentSession: vi.fn(),
+      readMarkdownPreview: vi.fn(async () => ({
+        path: "README.md",
+        content: "# AgentScope Preview",
+      })),
+      onAgentEvent: vi.fn(() => vi.fn()),
+    };
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText("# AgentScope Preview")).toBeInTheDocument();
+    });
   });
 });
