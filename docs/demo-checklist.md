@@ -21,7 +21,9 @@
 ## Run Timeline
 
 - Prompt submission and abort controls call Main Process runtime commands through Preload IPC.
+- New session and switch session controls call Main Process session replacement APIs through Preload IPC.
 - Main normalizes Pi SDK events and forwards them over IPC.
+- Main rebinds event forwarding after session replacement.
 - Renderer reducer merges assistant `text_delta` events into a stable assistant message.
 - Tool execution cards use `toolCallId` so repeated tools do not collide.
 - `agent_start` resets stale timeline state before the next run.
@@ -41,5 +43,5 @@
 
 - Built a secure Electron Main/Preload/Renderer boundary for local AI agent capabilities.
 - Converted high-frequency Pi SDK event streams into reducer-driven React view models.
-- Modeled workspace-scoped session navigation and session replacement-safe UI state.
+- Modeled workspace-scoped session navigation, session replacement commands, and replacement-safe event subscription.
 - Added typed IPC contracts so SDK/runtime data crossing process boundaries stays explicit.

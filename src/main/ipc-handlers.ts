@@ -12,7 +12,10 @@ export function registerIpcHandlers(options: {
   ipcMain: IpcHandlerRegistry;
   workspaceSessionService: WorkspaceSessionService;
   filePreviewService?: FilePreviewService;
-  piSdkRuntimeService?: Pick<PiSdkRuntimeService, "prompt" | "abort">;
+  piSdkRuntimeService?: Pick<
+    PiSdkRuntimeService,
+    "prompt" | "abort" | "newSession" | "switchSession"
+  >;
 }) {
   options.ipcMain.removeHandler(ipcChannels.getCurrentSession);
   options.ipcMain.handle(ipcChannels.getCurrentSession, () => {
@@ -35,6 +38,16 @@ export function registerIpcHandlers(options: {
     options.ipcMain.removeHandler(ipcChannels.abort);
     options.ipcMain.handle(ipcChannels.abort, () => {
       return options.piSdkRuntimeService?.abort();
+    });
+
+    options.ipcMain.removeHandler(ipcChannels.newSession);
+    options.ipcMain.handle(ipcChannels.newSession, () => {
+      return options.piSdkRuntimeService?.newSession();
+    });
+
+    options.ipcMain.removeHandler(ipcChannels.switchSession);
+    options.ipcMain.handle(ipcChannels.switchSession, (_event, sessionPath: string) => {
+      return options.piSdkRuntimeService?.switchSession(sessionPath);
     });
   }
 }

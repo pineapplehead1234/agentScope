@@ -7,6 +7,8 @@ const api: AgentScopeApi = {
   readMarkdownPreview: (path) => ipcRenderer.invoke(ipcChannels.readMarkdownPreview, path),
   prompt: (text) => ipcRenderer.invoke(ipcChannels.prompt, text),
   abort: () => ipcRenderer.invoke(ipcChannels.abort),
+  newSession: () => ipcRenderer.invoke(ipcChannels.newSession),
+  switchSession: (sessionPath) => ipcRenderer.invoke(ipcChannels.switchSession, sessionPath),
   onAgentEvent: (listener) => {
     const handler = (_event: Electron.IpcRendererEvent, payload: AgentRuntimeEvent) => {
       listener(payload);

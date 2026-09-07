@@ -354,6 +354,8 @@ v1 可以使用默认配置，最多展示 compaction/retry 状态，不做设�
 createAgentSessionRuntime
 runtime.session.prompt
 runtime.session.abort
+runtime.newSession
+runtime.switchSession
 runtime.session.subscribe
 sessionId / sessionFile metadata
 SessionManager.create / continueRecent
@@ -364,7 +366,6 @@ AgentSessionEvent -> EventAdapter -> Reducer
 
 ```text
 runtime.session.compact
-runtime.newSession
 runtime.session.messages
 runtime.session.isStreaming
 ```

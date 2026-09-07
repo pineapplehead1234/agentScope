@@ -53,11 +53,15 @@ describe("registerIpcHandlers", () => {
     const piSdkRuntimeService = {
       prompt: vi.fn(),
       abort: vi.fn(),
+      newSession: vi.fn(),
+      switchSession: vi.fn(),
     };
 
     registerIpcHandlers({ ipcMain, workspaceSessionService, piSdkRuntimeService });
 
     expect(ipcMain.handle).toHaveBeenCalledWith(ipcChannels.prompt, expect.any(Function));
     expect(ipcMain.handle).toHaveBeenCalledWith(ipcChannels.abort, expect.any(Function));
+    expect(ipcMain.handle).toHaveBeenCalledWith(ipcChannels.newSession, expect.any(Function));
+    expect(ipcMain.handle).toHaveBeenCalledWith(ipcChannels.switchSession, expect.any(Function));
   });
 });

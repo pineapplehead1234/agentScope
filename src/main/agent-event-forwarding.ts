@@ -1,8 +1,20 @@
-import type { BrowserWindow } from "electron";
 import type { AgentSessionEvent } from "@earendil-works/pi-coding-agent";
 import type { AgentRuntimeEvent } from "../shared/agent-events";
 import { ipcChannels } from "../shared/ipc-contract";
-import type { PiSdkRuntimeHandle } from "./pi-sdk-runtime-service";
+
+type AgentEventTargetWindow = {
+  webContents: {
+    send: (channel: string, payload: AgentRuntimeEvent) => void;
+  };
+};
+
+type AgentEventRuntimeHandle = {
+  runtime: {
+    session: {
+      subscribe: (listener: (event: AgentSessionEvent) => void) => () => void;
+    };
+  };
+};
 
 export function toAgentRuntimeEvent(
   event: Pick<AgentSessionEvent, "type"> & Record<string, unknown>,
@@ -59,8 +71,8 @@ export function toAgentRuntimeEvent(
 }
 
 export function forwardAgentEventsToWindow(options: {
-  runtimeHandle: PiSdkRuntimeHandle;
-  window: BrowserWindow;
+  runtimeHandle: AgentEventRuntimeHandle;
+  window: AgentEventTargetWindow;
 }) {
   return options.runtimeHandle.runtime.session.subscribe((event) => {
     const runtimeEvent = toAgentRuntimeEvent(event);
@@ -69,4 +81,31 @@ export function forwardAgentEventsToWindow(options: {
       options.window.webContents.send(ipcChannels.agentEvent, runtimeEvent);
     }
   });
+}
+
+export async function bindAgentEventsToWindow(options: {
+  runtimeService: {
+    create: () => Promise<AgentEventRuntimeHandle>;
+    onSessionReplaced: (listener: () => void) => () => void;
+  };
+  window: AgentEventTargetWindow;
+}) {
+  const runtimeHandle = await options.runtimeService.create();
+  let unsubscribeSession = forwardAgentEventsToWindow({
+    runtimeHandle,
+    window: options.window,
+  });
+
+  const unsubscribeReplacement = options.runtimeService.onSessionReplaced(() => {
+    unsubscribeSession();
+    unsubscribeSession = forwardAgentEventsToWindow({
+      runtimeHandle,
+      window: options.window,
+    });
+  });
+
+  return () => {
+    unsubscribeSession();
+    unsubscribeReplacement();
+  };
 }

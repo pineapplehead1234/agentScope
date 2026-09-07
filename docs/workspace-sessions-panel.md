@@ -12,8 +12,8 @@
 一个 workspace folder 对应一组 Pi session。
 当前已实现：Renderer 可展示传入的 workspace 分组 session 数据，并通过 IPC 加载当前 session。
 当前已实现：AgentScope 仍然只有一个 active session。
-后续增强：跨 workspace 最近会话列表、session 切换、新建 session 和运行中切换中断确认。
-后续增强：session replacement 后重新订阅新的 runtime.session。
+当前已实现：通过 IPC 暴露 newSession / switchSession，并在 session replacement 后重新订阅新的 runtime.session。
+后续增强：跨 workspace 最近会话列表和运行中切换中断确认。
 ```
 
 左侧不负责：

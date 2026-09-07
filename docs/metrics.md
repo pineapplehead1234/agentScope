@@ -6,9 +6,9 @@
 | --- | ---: | --- |
 | Electron process boundaries | 3 | Main, Preload, Renderer |
 | Renderer Pi SDK imports | 0 | Enforced by review/search today |
-| IPC API surface | 5 channels | Current session, markdown preview, prompt, abort, and agent event stream |
+| IPC API surface | 7 channels | Current session, markdown preview, prompt, abort, new session, switch session, and agent event stream |
 | Normalized agent event variants | 5 | Start, settled, message delta, tool start, tool end |
-| Test files | 10 | Renderer, Main, and Shared coverage with 26 tests |
+| Test files | 10 | Renderer, Main, and Shared coverage with 30 tests |
 
 ## Resume-Oriented Impact
 

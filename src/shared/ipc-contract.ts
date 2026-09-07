@@ -19,6 +19,8 @@ export type AgentScopeApi = {
   readMarkdownPreview: (path: string) => Promise<MarkdownPreviewData>;
   prompt: (text: string) => Promise<void>;
   abort: () => Promise<void>;
+  newSession: () => Promise<{ cancelled: boolean }>;
+  switchSession: (sessionPath: string) => Promise<{ cancelled: boolean }>;
   onAgentEvent: (listener: (event: AgentRuntimeEvent) => void) => () => void;
 };
 
@@ -27,5 +29,7 @@ export const ipcChannels = {
   readMarkdownPreview: "agentscope:file-preview:read-markdown",
   prompt: "agentscope:runtime:prompt",
   abort: "agentscope:runtime:abort",
+  newSession: "agentscope:runtime:new-session",
+  switchSession: "agentscope:runtime:switch-session",
   agentEvent: "agentscope:agent:event",
 } as const;

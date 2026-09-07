@@ -34,6 +34,8 @@ describe("App", () => {
       readMarkdownPreview: vi.fn(),
       prompt: vi.fn(),
       abort: vi.fn(),
+      newSession: vi.fn(),
+      switchSession: vi.fn(),
       onAgentEvent: vi.fn((nextListener) => {
         listener = nextListener;
         return unsubscribe;
@@ -65,6 +67,8 @@ describe("App", () => {
       readMarkdownPreview: vi.fn(),
       prompt: vi.fn(),
       abort: vi.fn(),
+      newSession: vi.fn(),
+      switchSession: vi.fn(),
       onAgentEvent: vi.fn(() => vi.fn()),
     };
 
@@ -84,6 +88,8 @@ describe("App", () => {
       })),
       prompt: vi.fn(),
       abort: vi.fn(),
+      newSession: vi.fn(),
+      switchSession: vi.fn(),
       onAgentEvent: vi.fn(() => vi.fn()),
     };
 
@@ -102,6 +108,8 @@ describe("App", () => {
       readMarkdownPreview: vi.fn(),
       prompt,
       abort,
+      newSession: vi.fn(),
+      switchSession: vi.fn(),
       onAgentEvent: vi.fn(() => vi.fn()),
     };
 
@@ -116,6 +124,33 @@ describe("App", () => {
     await waitFor(() => {
       expect(prompt).toHaveBeenCalledWith("Inspect the reducer");
       expect(abort).toHaveBeenCalled();
+    });
+  });
+
+  it("sends new and switch session commands through the preload API", async () => {
+    const newSession = vi.fn(async () => ({ cancelled: false }));
+    const switchSession = vi.fn(async () => ({ cancelled: false }));
+    window.agentScope = {
+      getCurrentSession: vi.fn(),
+      readMarkdownPreview: vi.fn(),
+      prompt: vi.fn(),
+      abort: vi.fn(),
+      newSession,
+      switchSession,
+      onAgentEvent: vi.fn(() => vi.fn()),
+    };
+
+    render(<App />);
+
+    fireEvent.click(screen.getByText("New Session"));
+    fireEvent.change(screen.getByLabelText("Session path"), {
+      target: { value: "D:/sessions/target.jsonl" },
+    });
+    fireEvent.click(screen.getByText("Switch"));
+
+    await waitFor(() => {
+      expect(newSession).toHaveBeenCalled();
+      expect(switchSession).toHaveBeenCalledWith("D:/sessions/target.jsonl");
     });
   });
 });

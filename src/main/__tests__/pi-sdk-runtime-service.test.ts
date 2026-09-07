@@ -36,4 +36,34 @@ describe("PiSdkRuntimeService", () => {
 
     expect(abort).toHaveBeenCalled();
   });
+
+  it("creates a new session and notifies replacement listeners", async () => {
+    const newSession = vi.fn(async () => ({ cancelled: false }));
+    const listener = vi.fn();
+    const service = createPiSdkRuntimeService("D:/myproject/agentScope", {
+      createHandle: async () =>
+        ({ runtime: { newSession } } as unknown as PiSdkRuntimeHandle),
+    });
+
+    service.onSessionReplaced(listener);
+    await service.newSession();
+
+    expect(newSession).toHaveBeenCalled();
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it("switches sessions and notifies replacement listeners", async () => {
+    const switchSession = vi.fn(async () => ({ cancelled: false }));
+    const listener = vi.fn();
+    const service = createPiSdkRuntimeService("D:/myproject/agentScope", {
+      createHandle: async () =>
+        ({ runtime: { switchSession } } as unknown as PiSdkRuntimeHandle),
+    });
+
+    service.onSessionReplaced(listener);
+    await service.switchSession("D:/sessions/target.jsonl");
+
+    expect(switchSession).toHaveBeenCalledWith("D:/sessions/target.jsonl");
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
 });

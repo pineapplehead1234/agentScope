@@ -270,9 +270,9 @@ Main 是本地能力层。
 ```text
 创建 AgentSessionRuntime
 维护 active session
-当前已实现 current session 查询、markdown preview 读取、prompt / abort 和 Agent event 转发
-后续增强 compact / newSession
-后续处理 session replacement 后重新订阅
+当前已实现 current session 查询、markdown preview 读取、prompt / abort、newSession / switchSession 和 Agent event 转发
+后续增强 compact
+当前处理 session replacement 后重新订阅
 向 Renderer 推送事件
 处理 Renderer 发来的 IPC command
 ```
@@ -320,11 +320,11 @@ PiSdkRuntimeService 是 Main Process 中对 Pi SDK 的封装层。
 ```text
 创建 AgentSessionRuntime
 持有当前 runtime.session
-当前封装 runtime creation、SessionManager、current session metadata、prompt / abort 和 event subscription
-后续封装 compact / newSession
+当前封装 runtime creation、SessionManager、current session metadata、prompt / abort、newSession / switchSession 和 event subscription
+后续封装 compact
 后续封装 getState / getMessages / getSessionStats
 通过 session.subscribe 接收 AgentSessionEvent
-后续在 session replacement 后重新订阅事件
+当前在 session replacement 后重新订阅事件
 把 event emit 给 Renderer
 ```
 

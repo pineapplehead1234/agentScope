@@ -23,6 +23,7 @@ export function createPiSdkRuntimeService(
   const agentDir = getAgentDir();
   const sessionManager = SessionManager.continueRecent(cwd);
   let currentHandle: PiSdkRuntimeHandle | undefined;
+  const sessionReplacementListeners = new Set<() => void>();
 
   async function createDefaultHandle(): Promise<PiSdkRuntimeHandle> {
     const runtime = await createAgentSessionRuntime(
@@ -59,6 +60,12 @@ export function createPiSdkRuntimeService(
     return currentHandle;
   }
 
+  function notifySessionReplaced() {
+    for (const listener of sessionReplacementListeners) {
+      listener();
+    }
+  }
+
   return {
     cwd,
     sessionManager,
@@ -72,6 +79,33 @@ export function createPiSdkRuntimeService(
     async abort(): Promise<void> {
       const handle = await getHandle();
       await handle.runtime.session.abort();
+    },
+    async newSession(): Promise<{ cancelled: boolean }> {
+      const handle = await getHandle();
+      const result = await handle.runtime.newSession();
+
+      if (!result.cancelled) {
+        notifySessionReplaced();
+      }
+
+      return result;
+    },
+    async switchSession(sessionPath: string): Promise<{ cancelled: boolean }> {
+      const handle = await getHandle();
+      const result = await handle.runtime.switchSession(sessionPath);
+
+      if (!result.cancelled) {
+        notifySessionReplaced();
+      }
+
+      return result;
+    },
+    onSessionReplaced(listener: () => void) {
+      sessionReplacementListeners.add(listener);
+
+      return () => {
+        sessionReplacementListeners.delete(listener);
+      };
     },
   };
 }

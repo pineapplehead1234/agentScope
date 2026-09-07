@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import { join } from "node:path";
-import { forwardAgentEventsToWindow } from "./agent-event-forwarding";
+import { bindAgentEventsToWindow } from "./agent-event-forwarding";
 import { createFilePreviewService } from "./file-preview-service";
 import { registerIpcHandlers } from "./ipc-handlers";
 import { createPiSdkRuntimeService } from "./pi-sdk-runtime-service";
@@ -35,8 +35,8 @@ function createWindow() {
 
   void piSdkRuntimeService
     .create()
-    .then((runtimeHandle) => {
-      const unsubscribe = forwardAgentEventsToWindow({ runtimeHandle, window: mainWindow });
+    .then(() => bindAgentEventsToWindow({ runtimeService: piSdkRuntimeService, window: mainWindow }))
+    .then((unsubscribe) => {
       mainWindow.on("closed", unsubscribe);
     })
     .catch((error: unknown) => {
