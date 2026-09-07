@@ -5,5 +5,10 @@ export type AgentRuntimeEvent =
       type: "message_update";
       assistantMessageEvent: { type: "text_delta"; delta: string };
     }
-  | { type: "tool_execution_start"; toolName: string }
-  | { type: "tool_execution_end"; toolName: string; isError: boolean };
+  | { type: "tool_execution_start"; toolCallId: string; toolName: string }
+  | {
+      type: "tool_execution_end";
+      toolCallId: string;
+      toolName: string;
+      isError: boolean;
+    };

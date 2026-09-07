@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import { join } from "node:path";
+import { forwardAgentEventsToWindow } from "./agent-event-forwarding";
 import { registerIpcHandlers } from "./ipc-handlers";
 import { createPiSdkRuntimeService } from "./pi-sdk-runtime-service";
 import { createWorkspaceSessionService } from "./workspace-session-service";
@@ -29,6 +30,16 @@ function createWindow() {
   } else {
     void mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
+
+  void piSdkRuntimeService
+    .create()
+    .then((runtimeHandle) => {
+      const unsubscribe = forwardAgentEventsToWindow({ runtimeHandle, window: mainWindow });
+      mainWindow.on("closed", unsubscribe);
+    })
+    .catch((error: unknown) => {
+      console.error("Failed to initialize Pi SDK runtime", error);
+    });
 }
 
 void app.whenReady().then(() => {
