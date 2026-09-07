@@ -20,6 +20,7 @@
 
 ## Run Timeline
 
+- Prompt submission and abort controls call Main Process runtime commands through Preload IPC.
 - Main normalizes Pi SDK events and forwards them over IPC.
 - Renderer reducer merges assistant `text_delta` events into a stable assistant message.
 - Tool execution cards use `toolCallId` so repeated tools do not collide.

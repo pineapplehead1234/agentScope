@@ -41,4 +41,23 @@ describe("registerIpcHandlers", () => {
       expect.any(Function),
     );
   });
+
+  it("registers prompt and abort runtime commands", () => {
+    const ipcMain = {
+      handle: vi.fn(),
+      removeHandler: vi.fn(),
+    };
+    const workspaceSessionService = {
+      getCurrentSession: vi.fn(),
+    };
+    const piSdkRuntimeService = {
+      prompt: vi.fn(),
+      abort: vi.fn(),
+    };
+
+    registerIpcHandlers({ ipcMain, workspaceSessionService, piSdkRuntimeService });
+
+    expect(ipcMain.handle).toHaveBeenCalledWith(ipcChannels.prompt, expect.any(Function));
+    expect(ipcMain.handle).toHaveBeenCalledWith(ipcChannels.abort, expect.any(Function));
+  });
 });

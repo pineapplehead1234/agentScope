@@ -20,6 +20,7 @@ through a narrow Preload + IPC API exposed with `contextBridge`.
 
 - React mounts through `createRoot`, keeping the renderer on React's Fiber/Concurrent Root path.
 - Pi SDK runtime creation, `SessionManager`, and SDK event subscription are isolated in Main Process services.
+- Agent `prompt` and `abort` commands are exposed through typed Preload IPC while execution stays in Main Process.
 - Agent events are normalized into typed `AgentRuntimeEvent` objects before crossing IPC.
 - The renderer reducer merges high-frequency `text_delta` events into stable timeline state before React rendering.
 - Repeated tool calls are tracked by SDK `toolCallId`, avoiding duplicate-key and status-collision bugs.

@@ -105,11 +105,16 @@ AgentSessionEvent
 
 ### 3.4 用户控制
 
-MVP 里用户至少能做：
+当前已实现的用户控制：
 
 ```text
 prompt：提交任务
 abort：中断当前任务
+```
+
+后续增强的用户控制：
+
+```text
 new_session：新建会话
 compact：手动上下文压缩
 refresh state：刷新会话状态
@@ -265,8 +270,8 @@ Main 是本地能力层。
 ```text
 创建 AgentSessionRuntime
 维护 active session
-当前已实现 current session 查询、markdown preview 读取和 Agent event 转发
-后续增强 prompt / abort / compact / newSession
+当前已实现 current session 查询、markdown preview 读取、prompt / abort 和 Agent event 转发
+后续增强 compact / newSession
 后续处理 session replacement 后重新订阅
 向 Renderer 推送事件
 处理 Renderer 发来的 IPC command
@@ -315,8 +320,8 @@ PiSdkRuntimeService 是 Main Process 中对 Pi SDK 的封装层。
 ```text
 创建 AgentSessionRuntime
 持有当前 runtime.session
-当前封装 runtime creation、SessionManager、current session metadata 和 event subscription
-后续封装 prompt / abort / compact / newSession
+当前封装 runtime creation、SessionManager、current session metadata、prompt / abort 和 event subscription
+后续封装 compact / newSession
 后续封装 getState / getMessages / getSessionStats
 通过 session.subscribe 接收 AgentSessionEvent
 后续在 session replacement 后重新订阅事件
@@ -396,14 +401,14 @@ AgentScope 也应该这样设计，但不能编造交易转化率、QPS 这类�
 ```text
 runtime service 单测覆盖场景数
 session replacement 后是否重新订阅事件
-后续 prompt / abort / compact 错误是否被收敛
+prompt / abort 错误是否被收敛，后续 compact 错误是否被收敛
 历史消息和 session stats 是否能稳定读取
 ```
 
 未来简历表达模板：
 
 ```text
-当前可写：针对 Electron Renderer 不能直接接触本地 Agent runtime 的边界问题，基于 Pi SDK 在 Main Process 封装 AgentSessionRuntime、SessionManager 和事件订阅，通过 Preload + IPC 将 current session、markdown preview 和 Agent event stream 暴露给 React Renderer。
+当前可写：针对 Electron Renderer 不能直接接触本地 Agent runtime 的边界问题，基于 Pi SDK 在 Main Process 封装 AgentSessionRuntime、SessionManager、prompt/abort 和事件订阅，通过 Preload + IPC 将 current session、markdown preview、runtime command 和 Agent event stream 暴露给 React Renderer。
 
 后续完成后再写：统一管理 prompt、abort、compact、新建会话、历史恢复和事件订阅，覆盖 session replacement、运行中 abort、历史恢复等 N 类关键场景。
 ```
@@ -500,7 +505,7 @@ contextIsolation 是否开启
 ### 9.1 Runtime 接入稳定性
 
 ```text
-当前可写：针对 Electron Renderer 不能直接接触本地 Agent runtime 的边界问题，基于 Pi SDK 在 Main Process 封装 AgentSessionRuntime、SessionManager 和事件订阅，通过 Preload + IPC 收敛 current session、markdown preview 和 Agent event stream。
+当前可写：针对 Electron Renderer 不能直接接触本地 Agent runtime 的边界问题，基于 Pi SDK 在 Main Process 封装 AgentSessionRuntime、SessionManager、prompt/abort 和事件订阅，通过 Preload + IPC 收敛 current session、markdown preview、runtime command 和 Agent event stream。
 
 后续完成后再写：统一管理 prompt、abort、compact、新建会话、历史恢复和事件订阅，覆盖 session replacement、运行中 abort、历史恢复等 N 类关键场景。
 ```

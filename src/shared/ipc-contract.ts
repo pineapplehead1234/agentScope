@@ -17,11 +17,15 @@ export type MarkdownPreviewData = {
 export type AgentScopeApi = {
   getCurrentSession: () => Promise<WorkspaceSessionView>;
   readMarkdownPreview: (path: string) => Promise<MarkdownPreviewData>;
+  prompt: (text: string) => Promise<void>;
+  abort: () => Promise<void>;
   onAgentEvent: (listener: (event: AgentRuntimeEvent) => void) => () => void;
 };
 
 export const ipcChannels = {
   getCurrentSession: "agentscope:session:get-current",
   readMarkdownPreview: "agentscope:file-preview:read-markdown",
+  prompt: "agentscope:runtime:prompt",
+  abort: "agentscope:runtime:abort",
   agentEvent: "agentscope:agent:event",
 } as const;

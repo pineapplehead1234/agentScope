@@ -1,4 +1,5 @@
 import { startTransition, useEffect, useReducer, useState } from "react";
+import { AgentCommandBar } from "./components/AgentCommandBar";
 import { ContextPanel } from "./components/ContextPanel";
 import { RunTimeline } from "./components/RunTimeline";
 import { WorkspaceSessionsPanel } from "./components/WorkspaceSessionsPanel";
@@ -79,7 +80,12 @@ export function App() {
         currentWorkspacePath={workspaceState.sessions[0]?.workspacePath ?? currentWorkspacePath}
         sessions={workspaceState.sessions}
       />
-      <RunTimeline state={timelineState} />
+      <section className="min-w-0">
+        <RunTimeline state={timelineState} />
+        <div className="px-6 pb-5">
+          <AgentCommandBar />
+        </div>
+      </section>
       <ContextPanel
         stats={contextState.stats}
         markdownPreview={contextState.markdownPreview}

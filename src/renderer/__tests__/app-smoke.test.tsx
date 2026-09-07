@@ -1,5 +1,12 @@
 import "@testing-library/jest-dom/vitest";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "../App";
 import type { AgentRuntimeEvent } from "../../shared/agent-events";
@@ -25,6 +32,8 @@ describe("App", () => {
     window.agentScope = {
       getCurrentSession: vi.fn(),
       readMarkdownPreview: vi.fn(),
+      prompt: vi.fn(),
+      abort: vi.fn(),
       onAgentEvent: vi.fn((nextListener) => {
         listener = nextListener;
         return unsubscribe;
@@ -54,6 +63,8 @@ describe("App", () => {
         isCurrent: true,
       })),
       readMarkdownPreview: vi.fn(),
+      prompt: vi.fn(),
+      abort: vi.fn(),
       onAgentEvent: vi.fn(() => vi.fn()),
     };
 
@@ -71,6 +82,8 @@ describe("App", () => {
         path: "README.md",
         content: "# AgentScope Preview",
       })),
+      prompt: vi.fn(),
+      abort: vi.fn(),
       onAgentEvent: vi.fn(() => vi.fn()),
     };
 
@@ -78,6 +91,31 @@ describe("App", () => {
 
     await waitFor(() => {
       expect(screen.getByText("# AgentScope Preview")).toBeInTheDocument();
+    });
+  });
+
+  it("sends prompt and abort commands through the preload API", async () => {
+    const prompt = vi.fn(async () => undefined);
+    const abort = vi.fn(async () => undefined);
+    window.agentScope = {
+      getCurrentSession: vi.fn(),
+      readMarkdownPreview: vi.fn(),
+      prompt,
+      abort,
+      onAgentEvent: vi.fn(() => vi.fn()),
+    };
+
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText("Agent prompt"), {
+      target: { value: "Inspect the reducer" },
+    });
+    fireEvent.click(screen.getByText("Send"));
+    fireEvent.click(screen.getByText("Abort"));
+
+    await waitFor(() => {
+      expect(prompt).toHaveBeenCalledWith("Inspect the reducer");
+      expect(abort).toHaveBeenCalled();
     });
   });
 });

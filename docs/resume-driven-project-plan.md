@@ -145,13 +145,13 @@ Pi SDK 提供 `createAgentSession()`、`createAgentSessionRuntime()`、`AgentSes
 
 ### 5.2 技术方案
 
-在 Electron Main Process 实现 `PiSdkRuntimeService`，当前已封装 Pi SDK 的 session 创建、SessionManager、当前 session metadata 和事件订阅；`prompt`、`abort`、`compact`、session replacement 等操作型能力作为后续增强继续接入。
+在 Electron Main Process 实现 `PiSdkRuntimeService`，当前已封装 Pi SDK 的 session 创建、SessionManager、当前 session metadata、prompt、abort 和事件订阅；`compact`、session replacement 等操作型能力作为后续增强继续接入。
 
 模块职责：
 
 ```text
 PiSdkRuntimeService：负责创建和持有 AgentSessionRuntime，封装 active session 的生命周期。
-AgentIpcService：当前负责 current session、markdown preview 和 agent event stream；后续负责把 Renderer 的 prompt / abort / compact / newSession 等请求转成 Main 内部 runtime 调用。
+AgentIpcService：当前负责 current session、markdown preview、prompt、abort 和 agent event stream；后续负责把 Renderer 的 compact / newSession 等请求转成 Main 内部 runtime 调用。
 EventAdapter：负责把 AgentSessionEvent 转成 Renderer 可消费的前端事件。
 ```
 
@@ -161,7 +161,7 @@ EventAdapter：负责把 AgentSessionEvent 转成 Renderer 可消费的前端事
 创建 AgentSessionRuntime
 维护 active session 引用
 后续在 session replacement 后重新订阅事件
-后续封装 prompt / abort / compact / newSession
+当前封装 prompt / abort；后续封装 compact / newSession
 当前读取 sessionId / sessionFile；后续读取 messages / isStreaming
 接入 SessionManager 进行持久化 session 管理
 将 AgentSessionEvent 推送到 Renderer
@@ -171,9 +171,9 @@ EventAdapter：负责把 AgentSessionEvent 转成 Renderer 可消费的前端事
 ### 5.3 可写简历点
 
 ```text
-当前可写：基于 Pi SDK 在 Electron Main Process 封装 Agent runtime 层，接入 AgentSessionRuntime、SessionManager 和 AgentSessionEvent，将 session metadata、event subscription 和 typed IPC 与 React Renderer 解耦。
+当前可写：基于 Pi SDK 在 Electron Main Process 封装 Agent runtime 层，接入 AgentSessionRuntime、SessionManager 和 AgentSessionEvent，将 session metadata、prompt/abort、event subscription 和 typed IPC 与 React Renderer 解耦。
 
-后续完成后再写：统一管理 prompt、abort、compact、新建会话、历史恢复和 session replacement 订阅重建，并通过 Preload + IPC 将完整 Agent 运行态同步至 React Renderer。
+后续完成后再写：在现有 prompt / abort 基础上继续统一管理 compact、新建会话、历史恢复和 session replacement 订阅重建，并通过 Preload + IPC 将完整 Agent 运行态同步至 React Renderer。
 ```
 
 ### 5.4 可量化指标
@@ -190,7 +190,7 @@ runtime service 单测数量
 目标表达示例：
 
 ```text
-后续增强目标：封装 prompt、abort、compact、newSession、getState、getMessages、getSessionStats 等核心操作，并覆盖 session replacement 后事件重新订阅、运行中 abort、历史消息恢复等关键场景。
+后续增强目标：在现有 prompt / abort 基础上继续封装 compact、newSession、getState、getMessages、getSessionStats 等核心操作，并覆盖 session replacement 后事件重新订阅、历史消息恢复等关键场景。
 ```
 
 ## 6. Electron 安全分层
@@ -214,15 +214,17 @@ Preload 暴露的最小 API 示例：
 ```text
 getCurrentSession()
 readMarkdownPreview(path)
+prompt(text)
+abort()
 onAgentEvent(listener)
 
-后续增强：prompt(text) / abort() / getState() / newSession() / compact()
+后续增强：getState() / newSession() / compact()
 ```
 
 ### 6.3 可写简历点
 
 ```text
-基于 Electron Main / Preload / Renderer 分层实现本地 Agent 客户端，关闭 Renderer Node 访问并启用 contextIsolation，通过 contextBridge 暴露 getCurrentSession、readMarkdownPreview、onAgentEvent 等当前最小 API，收敛 Pi SDK runtime、文件系统和 Shell 访问边界。
+基于 Electron Main / Preload / Renderer 分层实现本地 Agent 客户端，关闭 Renderer Node 访问并启用 contextIsolation，通过 contextBridge 暴露 getCurrentSession、readMarkdownPreview、prompt、abort、onAgentEvent 等当前最小 API，收敛 Pi SDK runtime、文件系统和 Shell 访问边界。
 ```
 
 ### 6.4 可量化指标
@@ -422,7 +424,8 @@ Tool Timeline
 Session Sidebar
 Context Panel
 Status Bar
-prompt / abort / getState / newSession / getMessages / getSessionStats / compact
+当前 runtime command：prompt / abort
+后续 runtime command：getState / newSession / getMessages / getSessionStats / compact
 runtime service 单测
 reducer 单测
 README 架构说明
@@ -459,8 +462,8 @@ MCP Tool Bridge
 
 ```text
 - 阅读 Pi SDK、Agent Loop、TUI 展示层与部分 AgentHarness runtime 源码，梳理 prompt、tool call、event stream、session、context compaction 的核心流程，并据此设计 AgentScope 的桌面控制台信息架构。
-- 基于 Electron Main / Preload / Renderer 分层实现本地 Agent 客户端，关闭 Renderer Node 访问并启用 contextIsolation，通过 contextBridge 暴露 getCurrentSession、readMarkdownPreview、onAgentEvent 等当前最小 API，收敛 Pi SDK runtime、文件系统和 Shell 访问边界。
-- 基于 Pi SDK 在 Electron Main Process 封装 Agent runtime 层，接入 AgentSessionRuntime、SessionManager 和 AgentSessionEvent，管理当前 session metadata、runtime creation 和事件订阅，并将 Agent event stream 转发至 React Renderer。
+- 基于 Electron Main / Preload / Renderer 分层实现本地 Agent 客户端，关闭 Renderer Node 访问并启用 contextIsolation，通过 contextBridge 暴露 getCurrentSession、readMarkdownPreview、prompt、abort、onAgentEvent 等当前最小 API，收敛 Pi SDK runtime、文件系统和 Shell 访问边界。
+- 基于 Pi SDK 在 Electron Main Process 封装 Agent runtime 层，接入 AgentSessionRuntime、SessionManager 和 AgentSessionEvent，管理当前 session metadata、runtime creation、prompt/abort 和事件订阅，并将 Agent event stream 转发至 React Renderer。
 - 设计 Agent 事件归并模型，基于 TypeScript 联合类型和 reducer 将 message delta、thinking delta、tool execution、queue、retry、compaction 等异步事件转换为前端 ViewModel，支持流式消息、Thinking 折叠块、工具调用时间线和运行状态展示。
 - 实现 Tool Timeline、Session Sidebar 与 Context Panel，展示工具调用、会话信息、token/cost、context usage 和 compaction 状态；new session、manual compact 与历史消息恢复属于后续增强。
 ```

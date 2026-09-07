@@ -45,7 +45,12 @@ function createWindow() {
 }
 
 void app.whenReady().then(() => {
-  registerIpcHandlers({ ipcMain, workspaceSessionService, filePreviewService });
+  registerIpcHandlers({
+    ipcMain,
+    workspaceSessionService,
+    filePreviewService,
+    piSdkRuntimeService,
+  });
   createWindow();
 
   app.on("activate", () => {
