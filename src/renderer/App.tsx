@@ -1,6 +1,8 @@
 import { startTransition, useEffect, useReducer } from "react";
+import { ContextPanel } from "./components/ContextPanel";
 import { RunTimeline } from "./components/RunTimeline";
 import { WorkspaceSessionsPanel } from "./components/WorkspaceSessionsPanel";
+import { initialContextPanelState } from "./state/context-store";
 import {
   initialAgentTimelineState,
   reduceAgentEvent,
@@ -37,7 +39,7 @@ export function App() {
         ]}
       />
       <RunTimeline state={timelineState} />
-      <aside>Context Panel</aside>
+      <ContextPanel stats={initialContextPanelState.stats} />
     </main>
   );
 }
