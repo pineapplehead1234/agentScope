@@ -1,5 +1,14 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import { join } from "node:path";
+import { registerIpcHandlers } from "./ipc-handlers";
+import { createPiSdkRuntimeService } from "./pi-sdk-runtime-service";
+import { createWorkspaceSessionService } from "./workspace-session-service";
+
+const piSdkRuntimeService = createPiSdkRuntimeService(process.cwd());
+const workspaceSessionService = createWorkspaceSessionService({
+  cwd: process.cwd(),
+  sessionManager: piSdkRuntimeService.sessionManager,
+});
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -11,7 +20,7 @@ function createWindow() {
       preload: join(__dirname, "../preload/index.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: true,
     },
   });
 
@@ -23,6 +32,7 @@ function createWindow() {
 }
 
 void app.whenReady().then(() => {
+  registerIpcHandlers({ ipcMain, workspaceSessionService });
   createWindow();
 
   app.on("activate", () => {
