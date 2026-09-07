@@ -20,4 +20,25 @@ describe("registerIpcHandlers", () => {
       expect.any(Function),
     );
   });
+
+  it("registers markdown preview through the file preview service", () => {
+    const ipcMain = {
+      handle: vi.fn(),
+      removeHandler: vi.fn(),
+    };
+    const workspaceSessionService = {
+      getCurrentSession: vi.fn(),
+    };
+    const filePreviewService = {
+      readMarkdownPreview: vi.fn(),
+    };
+
+    registerIpcHandlers({ ipcMain, workspaceSessionService, filePreviewService });
+
+    expect(ipcMain.removeHandler).toHaveBeenCalledWith(ipcChannels.readMarkdownPreview);
+    expect(ipcMain.handle).toHaveBeenCalledWith(
+      ipcChannels.readMarkdownPreview,
+      expect.any(Function),
+    );
+  });
 });
