@@ -11,6 +11,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "../App";
 import type { AgentRuntimeEvent } from "../../shared/agent-events";
 
+const idleRuntimeState = {
+  isStreaming: false,
+  isIdle: true,
+  isCompacting: false,
+  sessionId: "test-session",
+  sessionFile: undefined,
+  sessionName: undefined,
+};
+
 describe("App", () => {
   afterEach(() => {
     cleanup();
@@ -36,6 +45,9 @@ describe("App", () => {
       abort: vi.fn(),
       newSession: vi.fn(),
       switchSession: vi.fn(),
+      getState: vi.fn(async () => idleRuntimeState),
+      getMessages: vi.fn(),
+      getSessionStats: vi.fn(),
       onAgentEvent: vi.fn((nextListener) => {
         listener = nextListener;
         return unsubscribe;
@@ -69,6 +81,9 @@ describe("App", () => {
       abort: vi.fn(),
       newSession: vi.fn(),
       switchSession: vi.fn(),
+      getState: vi.fn(async () => idleRuntimeState),
+      getMessages: vi.fn(),
+      getSessionStats: vi.fn(),
       onAgentEvent: vi.fn(() => vi.fn()),
     };
 
@@ -90,6 +105,9 @@ describe("App", () => {
       abort: vi.fn(),
       newSession: vi.fn(),
       switchSession: vi.fn(),
+      getState: vi.fn(),
+      getMessages: vi.fn(),
+      getSessionStats: vi.fn(),
       onAgentEvent: vi.fn(() => vi.fn()),
     };
 
@@ -110,6 +128,9 @@ describe("App", () => {
       abort,
       newSession: vi.fn(),
       switchSession: vi.fn(),
+      getState: vi.fn(),
+      getMessages: vi.fn(),
+      getSessionStats: vi.fn(),
       onAgentEvent: vi.fn(() => vi.fn()),
     };
 
@@ -137,6 +158,9 @@ describe("App", () => {
       abort: vi.fn(),
       newSession,
       switchSession,
+      getState: vi.fn(),
+      getMessages: vi.fn(),
+      getSessionStats: vi.fn(),
       onAgentEvent: vi.fn(() => vi.fn()),
     };
 
@@ -151,6 +175,65 @@ describe("App", () => {
     await waitFor(() => {
       expect(newSession).toHaveBeenCalled();
       expect(switchSession).toHaveBeenCalledWith("D:/sessions/target.jsonl");
+    });
+  });
+
+  it("loads context stats from the runtime stats IPC", async () => {
+    window.agentScope = {
+      getCurrentSession: vi.fn(),
+      readMarkdownPreview: vi.fn(),
+      prompt: vi.fn(),
+      abort: vi.fn(),
+      newSession: vi.fn(),
+      switchSession: vi.fn(),
+      getState: vi.fn(async () => ({ ...idleRuntimeState, isCompacting: true })),
+      getMessages: vi.fn(),
+      getSessionStats: vi.fn(async () => ({
+        tokens: { total: 9000 },
+        cost: 0.33,
+        contextUsage: { percent: 71 },
+      })),
+      onAgentEvent: vi.fn(() => vi.fn()),
+    };
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText("9000")).toBeInTheDocument();
+      expect(screen.getByText("0.33")).toBeInTheDocument();
+      expect(screen.getByText("71%")).toBeInTheDocument();
+      expect(screen.getByText("Running")).toBeInTheDocument();
+    });
+  });
+
+  it("preserves compaction state when stats resolve after runtime state", async () => {
+    let resolveStats: ((value: { tokens: { total: number }; cost: number }) => void) | undefined;
+    const sessionStats = new Promise<{ tokens: { total: number }; cost: number }>((resolve) => {
+      resolveStats = resolve;
+    });
+    window.agentScope = {
+      getCurrentSession: vi.fn(),
+      readMarkdownPreview: vi.fn(),
+      prompt: vi.fn(),
+      abort: vi.fn(),
+      newSession: vi.fn(),
+      switchSession: vi.fn(),
+      getState: vi.fn(async () => ({ ...idleRuntimeState, isCompacting: true })),
+      getMessages: vi.fn(),
+      getSessionStats: vi.fn(() => sessionStats),
+      onAgentEvent: vi.fn(() => vi.fn()),
+    };
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Running")).toBeInTheDocument();
+    });
+    resolveStats?.({ tokens: { total: 12 }, cost: 0.01 });
+
+    await waitFor(() => {
+      expect(screen.getByText("12")).toBeInTheDocument();
+      expect(screen.getByText("Running")).toBeInTheDocument();
     });
   });
 });

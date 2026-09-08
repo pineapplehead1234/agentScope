@@ -15,6 +15,7 @@ export function registerIpcHandlers(options: {
   piSdkRuntimeService?: Pick<
     PiSdkRuntimeService,
     "prompt" | "abort" | "newSession" | "switchSession"
+    | "getState" | "getMessages" | "getSessionStats"
   >;
 }) {
   options.ipcMain.removeHandler(ipcChannels.getCurrentSession);
@@ -48,6 +49,21 @@ export function registerIpcHandlers(options: {
     options.ipcMain.removeHandler(ipcChannels.switchSession);
     options.ipcMain.handle(ipcChannels.switchSession, (_event, sessionPath: string) => {
       return options.piSdkRuntimeService?.switchSession(sessionPath);
+    });
+
+    options.ipcMain.removeHandler(ipcChannels.getState);
+    options.ipcMain.handle(ipcChannels.getState, () => {
+      return options.piSdkRuntimeService?.getState();
+    });
+
+    options.ipcMain.removeHandler(ipcChannels.getMessages);
+    options.ipcMain.handle(ipcChannels.getMessages, () => {
+      return options.piSdkRuntimeService?.getMessages();
+    });
+
+    options.ipcMain.removeHandler(ipcChannels.getSessionStats);
+    options.ipcMain.handle(ipcChannels.getSessionStats, () => {
+      return options.piSdkRuntimeService?.getSessionStats();
     });
   }
 }

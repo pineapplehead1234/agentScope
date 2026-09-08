@@ -9,6 +9,9 @@ const api: AgentScopeApi = {
   abort: () => ipcRenderer.invoke(ipcChannels.abort),
   newSession: () => ipcRenderer.invoke(ipcChannels.newSession),
   switchSession: (sessionPath) => ipcRenderer.invoke(ipcChannels.switchSession, sessionPath),
+  getState: () => ipcRenderer.invoke(ipcChannels.getState),
+  getMessages: () => ipcRenderer.invoke(ipcChannels.getMessages),
+  getSessionStats: () => ipcRenderer.invoke(ipcChannels.getSessionStats),
   onAgentEvent: (listener) => {
     const handler = (_event: Electron.IpcRendererEvent, payload: AgentRuntimeEvent) => {
       listener(payload);

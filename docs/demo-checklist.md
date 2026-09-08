@@ -22,6 +22,7 @@
 
 - Prompt submission and abort controls call Main Process runtime commands through Preload IPC.
 - New session and switch session controls call Main Process session replacement APIs through Preload IPC.
+- Runtime state, messages, and session stats are available as serializable Preload IPC calls.
 - Main normalizes Pi SDK events and forwards them over IPC.
 - Main rebinds event forwarding after session replacement.
 - Renderer reducer merges assistant `text_delta` events into a stable assistant message.
@@ -31,6 +32,7 @@
 ## Context And Preview
 
 - Context Panel shows token usage, cost, context percentage, compaction state, and summary.
+- Context Panel loads token/cost/context usage from `getSessionStats()`.
 - Markdown preview loads workspace markdown through Main-side file reading and Preload IPC.
 
 ## Verification

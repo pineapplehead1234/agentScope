@@ -55,6 +55,9 @@ describe("registerIpcHandlers", () => {
       abort: vi.fn(),
       newSession: vi.fn(),
       switchSession: vi.fn(),
+      getState: vi.fn(),
+      getMessages: vi.fn(),
+      getSessionStats: vi.fn(),
     };
 
     registerIpcHandlers({ ipcMain, workspaceSessionService, piSdkRuntimeService });
@@ -63,5 +66,8 @@ describe("registerIpcHandlers", () => {
     expect(ipcMain.handle).toHaveBeenCalledWith(ipcChannels.abort, expect.any(Function));
     expect(ipcMain.handle).toHaveBeenCalledWith(ipcChannels.newSession, expect.any(Function));
     expect(ipcMain.handle).toHaveBeenCalledWith(ipcChannels.switchSession, expect.any(Function));
+    expect(ipcMain.handle).toHaveBeenCalledWith(ipcChannels.getState, expect.any(Function));
+    expect(ipcMain.handle).toHaveBeenCalledWith(ipcChannels.getMessages, expect.any(Function));
+    expect(ipcMain.handle).toHaveBeenCalledWith(ipcChannels.getSessionStats, expect.any(Function));
   });
 });

@@ -20,7 +20,7 @@ AgentScope 的业务不是普通管理后台里的订单、用户、商品，而
   -> Main 订阅 Pi SDK 事件流
   -> Renderer 将事件归并成 UI 状态
   -> 用户观察对话、工具调用、会话和上下文状态
-  -> 用户必要时 abort / compact / new session
+  -> 用户必要时 abort / new session；后续支持 compact
 ```
 
 ## 2. 用户真正关心什么
@@ -137,7 +137,7 @@ getState
 getMessages
 getSessionStats
 newSession
-compact
+后续：compact
 ```
 
 这些操作会在 Main Process 内转换成 Pi SDK 调用。
@@ -151,7 +151,7 @@ Response 是 Main Process 对某个 IPC command 的返回结果。
 ```text
 prompt 调用完成或失败
 getState 返回当前状态
-compact 返回压缩结果
+后续：compact 返回压缩结果
 ```
 
 流式 UI 的主要数据来源不是 response，而是 AgentSessionEvent。
@@ -270,7 +270,7 @@ Main 是本地能力层。
 ```text
 创建 AgentSessionRuntime
 维护 active session
-当前已实现 current session 查询、markdown preview 读取、prompt / abort、newSession / switchSession 和 Agent event 转发
+当前已实现 current session 查询、markdown preview 读取、prompt / abort、newSession / switchSession、runtime state/stats 查询和 Agent event 转发
 后续增强 compact
 当前处理 session replacement 后重新订阅
 向 Renderer 推送事件
@@ -320,9 +320,8 @@ PiSdkRuntimeService 是 Main Process 中对 Pi SDK 的封装层。
 ```text
 创建 AgentSessionRuntime
 持有当前 runtime.session
-当前封装 runtime creation、SessionManager、current session metadata、prompt / abort、newSession / switchSession 和 event subscription
+当前封装 runtime creation、SessionManager、current session metadata、prompt / abort、newSession / switchSession、getState / getMessages / getSessionStats 和 event subscription
 后续封装 compact
-后续封装 getState / getMessages / getSessionStats
 通过 session.subscribe 接收 AgentSessionEvent
 当前在 session replacement 后重新订阅事件
 把 event emit 给 Renderer
@@ -408,7 +407,7 @@ prompt / abort 错误是否被收敛，后续 compact 错误是否被收敛
 未来简历表达模板：
 
 ```text
-当前可写：针对 Electron Renderer 不能直接接触本地 Agent runtime 的边界问题，基于 Pi SDK 在 Main Process 封装 AgentSessionRuntime、SessionManager、prompt/abort 和事件订阅，通过 Preload + IPC 将 current session、markdown preview、runtime command 和 Agent event stream 暴露给 React Renderer。
+当前可写：针对 Electron Renderer 不能直接接触本地 Agent runtime 的边界问题，基于 Pi SDK 在 Main Process 封装 AgentSessionRuntime、SessionManager、prompt/abort、newSession/switchSession、runtime state/stats 和事件订阅，通过 Preload + IPC 将 current session、markdown preview、runtime command 和 Agent event stream 暴露给 React Renderer。
 
 后续完成后再写：统一管理 prompt、abort、compact、新建会话、历史恢复和事件订阅，覆盖 session replacement、运行中 abort、历史恢复等 N 类关键场景。
 ```
@@ -505,7 +504,7 @@ contextIsolation 是否开启
 ### 9.1 Runtime 接入稳定性
 
 ```text
-当前可写：针对 Electron Renderer 不能直接接触本地 Agent runtime 的边界问题，基于 Pi SDK 在 Main Process 封装 AgentSessionRuntime、SessionManager、prompt/abort 和事件订阅，通过 Preload + IPC 收敛 current session、markdown preview、runtime command 和 Agent event stream。
+当前可写：针对 Electron Renderer 不能直接接触本地 Agent runtime 的边界问题，基于 Pi SDK 在 Main Process 封装 AgentSessionRuntime、SessionManager、prompt/abort、newSession/switchSession、runtime state/stats 和事件订阅，通过 Preload + IPC 收敛 current session、markdown preview、runtime command 和 Agent event stream。
 
 后续完成后再写：统一管理 prompt、abort、compact、新建会话、历史恢复和事件订阅，覆盖 session replacement、运行中 abort、历史恢复等 N 类关键场景。
 ```

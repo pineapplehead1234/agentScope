@@ -63,6 +63,40 @@ export function App() {
           console.error("Failed to load markdown preview", error);
         });
       }
+
+      const sessionStats = api.getSessionStats();
+      if (sessionStats) {
+        void sessionStats.then((stats) => {
+          startTransition(() => {
+            setContextState((state) => ({
+              ...state,
+              stats: {
+                ...state.stats,
+                tokenUsage: stats.tokens?.total ?? 0,
+                cost: stats.cost ?? 0,
+                contextUsagePercent: stats.contextUsage?.percent ?? 0,
+                summary: "Loaded from Pi SDK session stats",
+              },
+            }));
+          });
+        }).catch((error: unknown) => {
+          console.error("Failed to load session stats", error);
+        });
+      }
+
+      const runtimeState = api.getState();
+      if (runtimeState) {
+        void runtimeState.then((state) => {
+          startTransition(() => {
+            setContextState((current) => ({
+              ...current,
+              stats: { ...current.stats, isCompacting: state.isCompacting },
+            }));
+          });
+        }).catch((error: unknown) => {
+          console.error("Failed to load runtime state", error);
+        });
+      }
     }
   }, []);
 

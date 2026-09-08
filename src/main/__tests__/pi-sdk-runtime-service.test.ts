@@ -66,4 +66,67 @@ describe("PiSdkRuntimeService", () => {
     expect(switchSession).toHaveBeenCalledWith("D:/sessions/target.jsonl");
     expect(listener).toHaveBeenCalledTimes(1);
   });
+
+  it("returns a serializable runtime state view", async () => {
+    const service = createPiSdkRuntimeService("D:/myproject/agentScope", {
+      createHandle: async () =>
+        ({
+          runtime: {
+            session: {
+              isStreaming: true,
+              isIdle: false,
+              isCompacting: false,
+              sessionId: "session-1",
+              sessionFile: "D:/sessions/session-1.jsonl",
+              sessionName: "Runtime State",
+            },
+          },
+        } as unknown as PiSdkRuntimeHandle),
+    });
+
+    await expect(service.getState()).resolves.toEqual({
+      isStreaming: true,
+      isIdle: false,
+      isCompacting: false,
+      sessionId: "session-1",
+      sessionFile: "D:/sessions/session-1.jsonl",
+      sessionName: "Runtime State",
+    });
+  });
+
+  it("returns serializable messages and session stats", async () => {
+    const stats = {
+      tokens: { total: 42 },
+      cost: 0.12,
+      contextUsage: { percent: 55 },
+      internalOnly: "not exposed",
+    };
+    const service = createPiSdkRuntimeService("D:/myproject/agentScope", {
+      createHandle: async () =>
+        ({
+          runtime: {
+            session: {
+              messages: [
+                {
+                  role: "assistant",
+                  content: "Done",
+                  transient: undefined,
+                  internalOnly: "not exposed",
+                },
+              ],
+              getSessionStats: () => stats,
+            },
+          },
+        } as unknown as PiSdkRuntimeHandle),
+    });
+
+    await expect(service.getMessages()).resolves.toEqual([
+      { role: "assistant", content: "Done" },
+    ]);
+    await expect(service.getSessionStats()).resolves.toEqual({
+      tokens: { total: 42 },
+      cost: 0.12,
+      contextUsage: { percent: 55 },
+    });
+  });
 });
